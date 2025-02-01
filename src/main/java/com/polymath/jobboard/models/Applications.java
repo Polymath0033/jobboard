@@ -15,10 +15,10 @@ public class Applications {
     private Long id;
     @ManyToOne
     @JoinColumn(name = "job_id",nullable = false)
-    private Jobs job;
+    private Jobs jobs;
     @ManyToOne
     @JoinColumn(name = "job_seeker_id",nullable = false)
-    private JobSeekers jobSeeker;
+    private JobSeekers jobSeekers;
     @Column(nullable = false)
     private String resumeUrl;
     private String coverLetter;

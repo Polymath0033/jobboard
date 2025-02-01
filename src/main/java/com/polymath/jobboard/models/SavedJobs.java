@@ -15,6 +15,9 @@ public class SavedJobs {
     @ManyToOne
     @JoinColumn(name = "job_id",nullable = false)
     private Jobs job;
+    @ManyToOne
+    @JoinColumn(name = "job_seeker_id",nullable = false)
+    private JobSeekers jobSeekers;
     @CreationTimestamp
     private LocalDateTime savedAt;
 }
