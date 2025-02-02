@@ -22,7 +22,7 @@ import java.io.IOException;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private MyUserDetailsService myUserDetailsService;
+    private final MyUserDetailsService myUserDetailsService;
     public JwtFilter(JwtService jwtService, MyUserDetailsService myUserDetailsService) {
         this.jwtService = jwtService;
         this.myUserDetailsService = myUserDetailsService;

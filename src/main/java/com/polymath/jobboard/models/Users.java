@@ -25,6 +25,7 @@ public class Users {
     @NotBlank(message = "Password cannot be blank")
     @Size(min = 5,message = "Password should be at least more than 5 characters")
     private String password;
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserRole role;
     @CreationTimestamp

@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 
 @Service
 public interface TokenService {
-    void saveToken(String refreshToken, LocalDateTime issuedAt, LocalDateTime expiresAt, Users users );
+    void saveToken(String refreshToken, Users users );
     boolean isRefreshTokenValid(String refreshToken);
     void revokeRefreshToken(String refreshToken);
-    void revokeAllTokensForUser(Users users);
+    void revokeAndDeleteTokenForUser(Long userId);
 }

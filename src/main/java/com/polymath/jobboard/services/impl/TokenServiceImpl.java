@@ -4,10 +4,7 @@ import com.polymath.jobboard.models.Tokens;
 import com.polymath.jobboard.models.Users;
 import com.polymath.jobboard.repositories.TokenRepository;
 import com.polymath.jobboard.services.TokenService;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -21,14 +18,14 @@ public class TokenServiceImpl implements TokenService {
 
 
    // @Override
-    public void saveToken(String refreshToken, LocalDateTime issuedAt, LocalDateTime expiresAt, Users users) {
+    public void saveToken(String refreshToken,  Users users) {
         Tokens tokens = new Tokens();
         tokens.setUser(users);
         tokens.setRefreshToken(refreshToken);
         tokens.setIssuedAt(LocalDateTime.now());
         tokens.setExpiresAt(LocalDateTime.now().plusMonths(6));
+        tokens.setRevoked(false);
         tokenRepository.save(tokens);
-
     }
 
 
@@ -45,18 +42,10 @@ public class TokenServiceImpl implements TokenService {
         }
 
     }
-    public void revokeAllTokensForUser(Users users) {
-        tokenRepository.deleteByUser(users);
-    }
-
-    private void savedTokenOnCookies(String refreshToken, HttpServletResponse response) {
-        Cookie cookie =  new Cookie("refreshToken",refreshToken);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
-        cookie.setPath("/api/auth/refresh");
-        cookie.setMaxAge(6*30*24*60*60);
-        response.addCookie(cookie);
-
+    public void revokeAndDeleteTokenForUser(Long userId) {
+        tokenRepository.deleteByUserId(userId);
+        System.out.println(tokenRepository.findAll());
+        //System.out.println("user id"+tokenRepository.findByUserId(userId));
     }
 
 }

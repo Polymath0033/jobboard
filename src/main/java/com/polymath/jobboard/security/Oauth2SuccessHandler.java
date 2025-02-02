@@ -1,6 +1,7 @@
 package com.polymath.jobboard.security;
 
 import com.polymath.jobboard.services.JwtService;
+import com.polymath.jobboard.services.UserService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -15,9 +16,11 @@ import java.io.IOException;
 @Component
 public class Oauth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     private final JwtService jwtService;
+    private final UserService userService;
 
-    public Oauth2SuccessHandler(JwtService service) {
+    public Oauth2SuccessHandler(JwtService service,UserService userService) {
         this.jwtService = service;
+        this.userService = userService;
     }
 
     @Override
@@ -28,5 +31,6 @@ public class Oauth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String token = jwtService.generateAccessToken(email);
         response.getWriter().write("{\"token\":\""+token+"\"}");
         response.setContentType("application/json");
+
     }
 }

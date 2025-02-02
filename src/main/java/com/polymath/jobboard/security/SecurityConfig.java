@@ -1,14 +1,17 @@
 package com.polymath.jobboard.security;
 
+import com.polymath.jobboard.services.CustomOAuth2UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -17,16 +20,19 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@EnableWebSecurity
 public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
     private  final JwtFilter filter;
     private  final Oauth2SuccessHandler oauth2SuccessHandler;
+    private final CustomOAuth2UserService customOAuth2UserService;
 
-    public SecurityConfig(UserDetailsService userDetailsService,JwtFilter filter,Oauth2SuccessHandler oauth2SuccessHandler) {
+    public SecurityConfig(UserDetailsService userDetailsService,JwtFilter filter,@Lazy Oauth2SuccessHandler oauth2SuccessHandler,CustomOAuth2UserService customOAuth2UserService) {
         this.filter = filter;
         this.userDetailsService = userDetailsService;
         this.oauth2SuccessHandler = oauth2SuccessHandler;
+        this.customOAuth2UserService = customOAuth2UserService;
     }
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -42,7 +48,10 @@ public class SecurityConfig {
 //                                ADMIN
                                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN").anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults())
-                .oauth2Login(oauth2->oauth2.successHandler(oauth2SuccessHandler))
+                .oauth2Login(oauth2->oauth2
+                        .userInfoEndpoint(info->info
+                                .userService(customOAuth2UserService))
+                        .successHandler(oauth2SuccessHandler))
                 .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
                 .build();

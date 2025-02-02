@@ -4,16 +4,24 @@ import com.polymath.jobboard.models.enums.UserRole;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 
-public class UserPrincipal implements UserDetails {
+public class UserPrincipal implements UserDetails, OAuth2User {
 
     private final Users user;
+    Map<String,Object> attributes;
 
     public UserPrincipal(Users user) {
         this.user = user;
+        this.attributes=null;
+    }
+    public UserPrincipal(Users user, Map<String, Object> attributes) {
+        this.user = user;
+        this.attributes = attributes;
     }
 
     @Override
@@ -32,4 +40,13 @@ public class UserPrincipal implements UserDetails {
         return user.getEmail();
     }
 
+    @Override
+    public Map<String, Object> getAttributes() {
+        return attributes;
+    }
+
+    @Override
+    public String getName() {
+        return user.getEmail();
+    }
 }
