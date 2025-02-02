@@ -91,12 +91,6 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    @Override
-    public AuthResponse oAuth2login() {
-        System.out.println("Oauth auth");
-        return new AuthResponse(null,null);
-    }
-
     @Transactional
     public void handleTokenGeneration(Users user, HttpServletResponse response){
         tokenService.revokeAndDeleteTokenForUser(user.getId());
@@ -108,6 +102,10 @@ public class UserServiceImpl implements UserService {
 
     private void savedTokenOnCookies(String refreshToken, HttpServletResponse response) {
         CustomOAuth2UserService.Cookies(refreshToken, response);
+    }
+    public UserInfo getUserInfo(String email){
+        Users users = usersRepositories.findByEmail(email).orElseThrow(()->new UserDoesNotExists("User does not exist"));
+        return new UserInfo(users.getId(),users.getEmail(),users.getRole());
     }
 
 }
