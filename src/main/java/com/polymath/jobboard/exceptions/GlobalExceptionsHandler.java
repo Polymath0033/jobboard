@@ -19,4 +19,9 @@ public class GlobalExceptionsHandler {
     public ErrorResponse handleUserDoesNotExists(UserDoesNotExists ex) {
         return new ErrorResponse(HttpStatus.NOT_FOUND.value(),ex.getMessage(),System.currentTimeMillis());
     }
+    @ExceptionHandler(CustomBadRequest.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleCustomBadRequest(CustomBadRequest ex){
+        return new ErrorResponse(HttpStatus.BAD_REQUEST.value(),ex.getMessage(),System.currentTimeMillis());
+    }
 }

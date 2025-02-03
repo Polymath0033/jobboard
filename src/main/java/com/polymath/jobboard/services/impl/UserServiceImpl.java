@@ -94,7 +94,6 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void handleTokenGeneration(Users user, HttpServletResponse response){
         tokenService.revokeAndDeleteTokenForUser(user.getId());
-
         String refreshToken = jwtService.generateRefreshToken(user.getEmail());
         tokenService.saveToken(refreshToken,user);
         savedTokenOnCookies(refreshToken,response);

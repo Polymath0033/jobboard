@@ -12,6 +12,7 @@ public class Employers {
     @OneToOne
     @JoinColumn(name = "user_id",unique = true,nullable = false)
     private Users user;
+    @Column(nullable = false)
     private String companyName;
     private String companyDescription;
     private String logoUrl;
