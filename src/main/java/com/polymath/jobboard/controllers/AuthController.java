@@ -5,6 +5,7 @@ import com.polymath.jobboard.dto.response.AuthResponse;
 import com.polymath.jobboard.services.UserService;
 import com.polymath.jobboard.utils.responseHandler.ResponseHandler;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,13 +22,12 @@ public class AuthController {
         this.userService = userService;
     }
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterUserRequest user, HttpServletResponse response) {
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterUserRequest user, HttpServletResponse response) {
        AuthResponse authResponse = userService.registerUser(user,response);
        return ResponseHandler.handleResponse(authResponse, HttpStatus.CREATED,"register");
-
     }
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest user, HttpServletResponse response) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest user, HttpServletResponse response) {
        AuthResponse authResponse= userService.loginUser(user,response);
        return ResponseHandler.handleResponse(authResponse, HttpStatus.OK,"login");
     }

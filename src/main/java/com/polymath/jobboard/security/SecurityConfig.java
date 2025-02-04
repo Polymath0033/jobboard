@@ -42,7 +42,7 @@ public class SecurityConfig {
                         req.requestMatchers(
                                 "/api/auth/**","/api/v1/jobs","/api/v1/jobs/{id}").permitAll()
 //                                JOB_SEEKERS
-                                .requestMatchers("/api/v1/jobs-seeker/**","/api/v1/jobs/{id}/apply","/api/v1/jobs/{id}/save").hasRole("JOB_SEEKER")
+                                .requestMatchers("/api/v1/jobs-seeker/**","/api/v1/jobs/{id}/apply","/api/v1/jobs/{id}/save","/api/v1/user/job-seeker/**").hasRole("JOB_SEEKER")
 //                                 EMPLOYER
                                 .requestMatchers("/api/v1/employer/**","/api/v1/jobs/{id}/applications").hasRole("EMPLOYER")
 //                                ADMIN

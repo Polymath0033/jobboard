@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserService {
     public AuthResponse registerUser(RegisterUserRequest user, HttpServletResponse response) {
         Optional<Users> existingUser = usersRepositories.findByEmail(user.email());
         if (existingUser.isPresent()) {
-            throw new UserAlreadyExists("User already exist"+existingUser);
+            throw new UserAlreadyExists("User already exist "+existingUser.get().getEmail());
         }
 
         UserRole role;
@@ -79,7 +79,6 @@ public class UserServiceImpl implements UserService {
             Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.email(), user.password()));
             if (authentication.isAuthenticated()) {
                 String accessToken = jwtService.generateAccessToken(existingUser.getEmail());
-                System.out.println(existingUser);
                handleTokenGeneration(existingUser,response);
                return new AuthResponse(accessToken,new UserInfo(existingUser.getId(),existingUser.getEmail(),existingUser.getRole()));
             }else {

@@ -31,20 +31,29 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NotNull HttpServletRequest request,@NotNull HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
             String authHeader = request.getHeader("Authorization");
+        System.out.println("Auth Header"+authHeader);
             String token = null;
             String email = null;
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                token = authHeader.substring(7);
+              token = authHeader.substring(7);
                 email = jwtService.extractEmail(token);
+                System.out.println("email: " + email);
+                System.out.println("token: " + token);
             }
+        System.out.println(token);
+        System.out.println(email);
             if(email != null&& SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = myUserDetailsService.loadUserByUsername(email);
+                System.out.println("1. Authenticated user: " + userDetails.getUsername());
                 if(jwtService.validateToken(token, userDetails)) {
                     UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-
+                    System.out.println("2. Authenticated user: " + userDetails.getUsername());
+                }else {
+                    System.out.println("3. Invalid token");
                 }
+
             }
             filterChain.doFilter(request, response);
 
