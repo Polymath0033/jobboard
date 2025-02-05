@@ -14,6 +14,7 @@ import com.polymath.jobboard.repositories.EmployersRepository;
 import com.polymath.jobboard.repositories.JobSeekersRepository;
 import com.polymath.jobboard.repositories.UsersRepositories;
 import com.polymath.jobboard.services.UserDataService;
+import com.polymath.jobboard.utils.RoleUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -24,16 +25,19 @@ public class UserDataServiceImpl implements UserDataService {
     private final JobSeekersRepository jobSeekersRepository;
     private final UsersRepositories usersRepositories;
     private final EmployersRepository employersRepository;
+    private final RoleUtils roleUtils;
 
 
-    public UserDataServiceImpl(JobSeekersRepository jobSeekersRepository, UsersRepositories usersRepositories,EmployersRepository employersRepository) {
+    public UserDataServiceImpl(JobSeekersRepository jobSeekersRepository, UsersRepositories usersRepositories, EmployersRepository employersRepository, RoleUtils roleUtils) {
         this.jobSeekersRepository = jobSeekersRepository;
         this.usersRepositories = usersRepositories;
         this.employersRepository = employersRepository;
+        this.roleUtils = roleUtils;
     }
 
     @Override
     public JobSeekersResponse addJobSeeker(JobSeekersDto request) {
+        roleUtils.validateSingleRole(UserRole.JOB_SEEKER);
         try {
             if(request.email()==null||request.firstName()==null||request.lastName()==null){
                 throw new CustomBadRequest("Enter appropriate data");
@@ -60,6 +64,7 @@ public class UserDataServiceImpl implements UserDataService {
 
     @Override
     public JobSeekersResponse updateJobSeeker(Long id, JobSeekersDto request) {
+        roleUtils.validateSingleRole(UserRole.JOB_SEEKER);
         if(id==null||request.email()==null||request.firstName()==null||request.lastName()==null){
             throw new CustomBadRequest("Enter appropriate data");
         }
@@ -75,6 +80,7 @@ public class UserDataServiceImpl implements UserDataService {
 
     @Override
     public void deleteJobSeeker(Long id) {
+        roleUtils.validateSingleRole(UserRole.ADMIN);
         if(id==null||jobSeekersRepository.existsById(id)){
             throw new CustomBadRequest("JobSeeker with this is id: " + id + " does not exist");
         }
@@ -86,6 +92,7 @@ public class UserDataServiceImpl implements UserDataService {
 
     @Override
     public JobSeekersResponse getJobSeeker(String email) {
+        roleUtils.validateAnyRoles(UserRole.JOB_SEEKER,UserRole.ADMIN);
         if(email==null){
             throw new CustomBadRequest("Enter appropriate token");
         }
@@ -95,14 +102,18 @@ public class UserDataServiceImpl implements UserDataService {
     }
 
     @Override
-    public AllUserResponse getAllJobSeekers() {
+    public AllUserResponse getAllJobSeekersData() {
+        roleUtils.validateSingleRole(UserRole.ADMIN);
         List<JobSeekers> allJobSeekers = jobSeekersRepository.findAll();
-        return new AllUserResponse(allJobSeekers);
+        List<JobSeekerDto> jobSeekerDtoList = new ArrayList<>();
+        allJobSeekers.forEach(js->jobSeekerDtoList.add(new JobSeekerDto(js.getId(),js.getUser().getEmail(),js.getUser().getRole(),js.getFirstName(),js.getLastName(),js.getResumeUrl(),js.getSkills(),js.getExperiences())));
+        return new AllUserResponse(jobSeekerDtoList);
     }
 
 
     @Override
     public EmployersResponse addNewEmployer(EmployersDto newEmployer) {
+        roleUtils.validateSingleRole(UserRole.EMPLOYER);
         if (newEmployer.email()==null||newEmployer.companyName()==null){
             throw new CustomBadRequest("Enter appropriate data");
         }
@@ -119,6 +130,7 @@ public class UserDataServiceImpl implements UserDataService {
 
     @Override
     public EmployersResponse updateEmployer(Long id, EmployersDto employer) {
+        roleUtils.validateSingleRole(UserRole.EMPLOYER);
         if(employer.email()==null||employer.companyName()==null){
             throw new CustomBadRequest("Enter appropriate data");
         }
@@ -133,14 +145,15 @@ public class UserDataServiceImpl implements UserDataService {
 
     @Override
     public void deleteEmployer(Long id) {
+        roleUtils.validateSingleRole(UserRole.ADMIN);
         if (id==null||jobSeekersRepository.existsById(id)){
             throw new CustomBadRequest("Employer with this is id: " + id + " does not exist");
         }
         employersRepository.deleteById(id);
     }
-
     @Override
     public EmployersResponse getEmployer(String email) {
+        roleUtils.validateSingleRole(UserRole.EMPLOYER);
         if (email==null){
             throw new CustomBadRequest("Enter appropriate data");
         }
@@ -150,18 +163,34 @@ public class UserDataServiceImpl implements UserDataService {
     }
 
     @Override
-    public AllUserResponse getAllEmployers() {
+    public AllUserResponse getAllEmployersData() {
+        roleUtils.validateSingleRole(UserRole.ADMIN);
         List<Employers> allEmployers = employersRepository.findAll();
-        return new AllUserResponse(allEmployers);
+        List<EmployerDto> employerDtoList = new ArrayList<>();
+        allEmployers.forEach(employer -> employerDtoList.add(new EmployerDto(employer.getId(),employer.getUser().getEmail(),employer.getUser().getRole(),employer.getCompanyName(),employer.getCompanyDescription(),employer.getLogoUrl(),employer.getWebsiteUrl())));
+        return new AllUserResponse(employerDtoList);
     }
 
     @Override
-    public AllUserResponse getAllUsers() {
+    public AllUserResponse getAllUsersData() {
+        roleUtils.validateSingleRole(UserRole.ADMIN);
         List<Employers> allEmployers = employersRepository.findAll();
         List<JobSeekers> allJobSeekers = jobSeekersRepository.findAll();
+        System.out.println(allEmployers);
+        System.out.println(allJobSeekers);
         List<Object> combinedUsers = new ArrayList<>();
         allEmployers.forEach(employers -> combinedUsers.add(new EmployerDto(employers.getId(),employers.getUser().getEmail(),employers.getUser().getRole(),employers.getCompanyName(),employers.getCompanyDescription(),employers.getLogoUrl(),employers.getWebsiteUrl())));
         allJobSeekers.forEach(jobSeekers -> combinedUsers.add(new JobSeekerDto(jobSeekers.getId(), jobSeekers.getUser().getEmail(),jobSeekers.getUser().getRole(),jobSeekers.getFirstName(),jobSeekers.getLastName(),jobSeekers.getResumeUrl(),jobSeekers.getSkills(),jobSeekers.getExperiences())));
         return new AllUserResponse(combinedUsers);
     }
+
+    public AllUserResponse getAllUsers(){
+        roleUtils.validateSingleRole(UserRole.ADMIN);
+        List<Users> users = usersRepositories.findAll();
+        List<UsersDto> usersDtoList = new ArrayList<>();
+        users.forEach(user->usersDtoList.add(new UsersDto(user.getId(),user.getEmail(),user.getRole(),user.getCreatedAt(),user.getUpdatedAt())));
+        return new AllUserResponse(usersDtoList);
+    }
+
+
 }

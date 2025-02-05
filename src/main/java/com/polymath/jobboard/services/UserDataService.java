@@ -9,17 +9,35 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface UserDataService {
+
+//    JobSeeker service
     JobSeekersResponse addJobSeeker(JobSeekersDto jobSeeker);
+
     JobSeekersResponse updateJobSeeker(Long id,JobSeekersDto jobSeeker);
-    void deleteJobSeeker(Long id);
+
     JobSeekersResponse getJobSeeker(String email);
-    AllUserResponse getAllJobSeekers();
+
+
+    //  Employer service
     EmployersResponse addNewEmployer(EmployersDto employer);
+
     EmployersResponse updateEmployer(Long id, EmployersDto employer);
-    void deleteEmployer(Long id);
+
     EmployersResponse getEmployer(String email);
-    AllUserResponse getAllEmployers();
+
+
+//    Admin Service
+    AllUserResponse getAllJobSeekersData();
+
+    AllUserResponse getAllEmployersData();
+
+    AllUserResponse getAllUsersData();
+
     AllUserResponse getAllUsers();
+
+    void deleteJobSeeker(Long id);
+
+    void deleteEmployer(Long id);
 
 
 }

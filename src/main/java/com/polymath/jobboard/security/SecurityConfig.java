@@ -1,10 +1,13 @@
 package com.polymath.jobboard.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.polymath.jobboard.services.CustomOAuth2UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -18,6 +21,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import javax.print.attribute.standard.Media;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 @EnableWebSecurity
@@ -47,6 +54,26 @@ public class SecurityConfig {
                                 .requestMatchers("/api/v1/employer/**","/api/v1/jobs/{id}/applications").hasRole("EMPLOYER")
 //                                ADMIN
                                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN").anyRequest().authenticated())
+                .exceptionHandling(ex->ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                            Map<String,Object> responseBody = new HashMap<>();
+                            responseBody.put("status", HttpStatus.UNAUTHORIZED.value());
+                            responseBody.put("message", "Authentication Required");
+                            responseBody.put("data",null);
+                            new ObjectMapper().writeValue(response.getOutputStream(),responseBody);
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                            response.setStatus(HttpStatus.FORBIDDEN.value());
+                            Map<String,Object> responseBody = new HashMap<>();
+                            responseBody.put("status", HttpStatus.FORBIDDEN.value());
+                            responseBody.put("message", "Access denied: Insufficient privileges");
+                            responseBody.put("data",null);
+                            new ObjectMapper().writeValue(response.getOutputStream(),responseBody);
+                        })
+                )
                 .httpBasic(Customizer.withDefaults())
                 .oauth2Login(oauth2->oauth2
                         .userInfoEndpoint(info->info
