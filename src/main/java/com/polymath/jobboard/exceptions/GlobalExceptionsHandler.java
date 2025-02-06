@@ -5,10 +5,12 @@ import com.polymath.jobboard.dto.response.ErrorValidationResponse;
 import org.apache.tomcat.websocket.AuthenticationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 
 import java.nio.file.AccessDeniedException;
 import java.util.HashMap;
@@ -79,6 +81,17 @@ public class GlobalExceptionsHandler {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ErrorResponse handleAuthenticationException(AuthenticationException ex) {
         return new ErrorResponse(HttpStatus.UNAUTHORIZED.value(),ex.getMessage(),System.currentTimeMillis());
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+    public ResponseEntity<Map<String,Object>> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException ex, WebRequest request) {
+        Map<String,Object> responseBody = new HashMap<>();
+        responseBody.put("status",HttpStatus.METHOD_NOT_ALLOWED.value());
+        responseBody.put("message",ex.getMethod());
+        responseBody.put("path",request.getDescription(false));
+        responseBody.put("error","Method Not Allowed");
+        return new ResponseEntity<>(responseBody,HttpStatus.METHOD_NOT_ALLOWED);
     }
 
 }

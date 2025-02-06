@@ -14,7 +14,7 @@ public class Jobs {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "employer_id",nullable = false)
     private Employers employers;
     @Column(nullable = false)
@@ -28,6 +28,6 @@ public class Jobs {
     @Column(updatable = false)
     private LocalDateTime postedAt;
     private LocalDateTime expiresAt;
-    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private JobStatus status;
 }
