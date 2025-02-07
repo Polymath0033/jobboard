@@ -11,9 +11,10 @@ create table jobs(id serial primary key,employer_id int not null references empl
 create table applications(id serial primary key,job_id int not null references jobs(id) on delete cascade,job_seeker_id int not null references job_seekers(id) on delete cascade,resume_url varchar(255) not null,cover_letter text,applied_at timestamp default current_timestamp,status varchar(50) not null default 'PENDING' check ( status in ('PENDING','REVIEWED','REJECTED','ACCEPTED') ),constraint unique_job_application unique (job_id,job_seeker_id));
 );
 -- Saved Jobs Table
-create table saved_jobs(id serial primary key, job_id int not null unique references jobs(id) on delete cascade,job_seeker_id int not null unique references job_seekers(id) on delete cascade ,saved_at timestamp default current_timestamp);
+create table saved_jobs(id serial primary key, job_id int not null unique references jobs(id) on delete cascade,job_seeker_id int not null unique references job_seekers(id) on delete cascade ,saved_at timestamp default current_timestamp, constraint unique_saved_jobs unique (job_id,job_seeker_id));
 
 -- Job Alerts Table
 create table job_alerts(id serial primary key,job_seeker_id int not null unique references job_seekers(id) on delete cascade, searched_query text not null, frequency varchar(100) not null default 'DAILY' check ( frequency in ('DAILY','WEEKLY') ));
+
 -- Tokens Table
 create table tokens(id uuid primary key default gen_random_uuid(),refresh_token varchar(255) not null unique, user_id int not null unique references users(id) on delete cascade, issued_at timestamp not null, expired_at timestamp not null, revoked boolean not null default false);

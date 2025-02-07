@@ -62,16 +62,10 @@ public class JwtService {
                 .parseSignedClaims(token)
                 .getPayload();
     }
+
+//    ...there is more to this
     public boolean validateToken(String token, UserDetails userDetails) {
         final String email = extractEmail(token);
-        boolean isEmailValid = email.equals(userDetails.getUsername());
-        boolean isTokenExpired = isTokenExpired(token);
-
-        System.out.println("Token validation:");
-        System.out.println("Email from token: " + email);
-        System.out.println("Email from userDetails: " + userDetails.getUsername());
-        System.out.println("Is email valid? " + isEmailValid);
-        System.out.println("Is token expired? " + isTokenExpired);
         return (email.equals(userDetails.getUsername())&&!isTokenExpired(token));
     }
     public boolean isTokenExpired(String token) {

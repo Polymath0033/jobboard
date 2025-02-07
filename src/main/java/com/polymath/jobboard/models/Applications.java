@@ -24,7 +24,8 @@ public class Applications {
     private String coverLetter;
     @CreationTimestamp
     @Column(nullable = false,updatable = false)
-    private LocalDateTime appliesAt;
+    private LocalDateTime appliedAt;
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private ApplicationStatus status;
 }
