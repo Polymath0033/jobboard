@@ -5,10 +5,10 @@ create table job_seekers(id serial primary key,user_id int not null unique refer
 -- Employers Table
 create table employers(id serial primary key, user_id int not null unique references users(id) on delete cascade, company_name varchar(255) not null, company_description text,logo_url varchar(255), website_url varchar(255));
 -- Jobs Table
-create table jobs(id serial primary key,employer_id int not null unique references employers(id) on delete  cascade,title varchar(255) not null, description text not null, location varchar(255), category varchar(255), salary numeric(10,2),posted_at timestamp default current_timestamp,expires_at timestamp, status varchar(50) not null check ( status in ('ACTIVE','FILLED','EXPIRED') ));
+create table jobs(id serial primary key,employer_id int not null references employers(id) on delete  cascade,title varchar(255) not null, description text not null, location varchar(255), category varchar(255), salary numeric(10,2),posted_at timestamp default current_timestamp,expires_at timestamp, status varchar(50) not null check ( status in ('ACTIVE','FILLED','EXPIRED') ));
 
 -- Applications Table
-create table applications(id serial primary key,job_id int not null unique references jobs(id) on delete cascade,job_seeker_id int not null unique references job_seekers(id) on delete cascade,resume_url varchar(255) not null,cover_letter text,applied_at timestamp default current_timestamp,status varchar(50) not null default 'PENDING' check ( status in ('PENDING','REVIEWED','REJECTED','ACCEPTED') ));
+create table applications(id serial primary key,job_id int not null references jobs(id) on delete cascade,job_seeker_id int not null references job_seekers(id) on delete cascade,resume_url varchar(255) not null,cover_letter text,applied_at timestamp default current_timestamp,status varchar(50) not null default 'PENDING' check ( status in ('PENDING','REVIEWED','REJECTED','ACCEPTED') ),constraint unique_job_application unique (job_id,job_seeker_id));
 );
 -- Saved Jobs Table
 create table saved_jobs(id serial primary key, job_id int not null unique references jobs(id) on delete cascade,job_seeker_id int not null unique references job_seekers(id) on delete cascade ,saved_at timestamp default current_timestamp);
