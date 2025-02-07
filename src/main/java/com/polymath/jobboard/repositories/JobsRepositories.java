@@ -19,7 +19,8 @@ select job from Jobs job where
 lower(job.title) like lower(concat('%', :search, '%')) or
 lower(job.description) like lower(concat('%', :search, '%')) or
 lower(job.category) like lower(concat('%', :search, '%')) or
-lower(job.location) like lower(concat('%', :search, '%'))
+lower(job.location) like lower(concat('%', :search, '%')) or
+lower(job.employers.companyName) like lower(concat('%', :search, '%') ) 
 """)
     public Page<Jobs> advanceJobsSearch(@Param("search") String search, Pageable pageable);
 
