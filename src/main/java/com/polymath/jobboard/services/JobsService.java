@@ -20,8 +20,8 @@ public interface JobsService {
     void deleteJob(Long jobId,String employerEmail);
     Page<JobsResponse> getAllJobs(Pageable pageable);
     JobsResponse getJobById(Long jobId);
-//    Page<JobsResponse> searchJobsByTitleOrDescriptionOrLocationOrCategoryOrCompanyName(String search, Pageable pageable);
-    Page<JobsResponse> filterJobs(String title, String location, String description, String companyName, Double minSalary,Double maxSalary, String category, LocalDateTime startsAt,LocalDateTime endsAt,Pageable pageable);
+   Page<JobsResponse> advanceSearch(String search, Pageable pageable);
+    Page<JobsResponse> filterJobs(String title,String description,String companyName,String location,String category,Double minSalary,Double maxSalary, LocalDateTime startsAt, LocalDateTime endsAt,Pageable pageable);
     Page<JobsResponse> searchJobsByTitle(String title,Pageable pageable);
     //void applyForJob(Jobs job);
 }

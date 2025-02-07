@@ -47,7 +47,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req->
                         req.requestMatchers(
-                                "/api/auth/**","/api/v1/jobs","/api/v1/jobs/{id}").permitAll()
+                                "/api/auth/**","/api/v1/jobs","/api/v1/jobs/{id}","/api/v1/jobs/**").permitAll()
 //                                JOB_SEEKERS
                                 .requestMatchers("/api/v1/jobs-seeker/**","/api/v1/jobs/{id}/apply","/api/v1/jobs/{id}/save","/api/v1/user/job-seeker/**").hasRole("JOB_SEEKER")
 //                                 EMPLOYER

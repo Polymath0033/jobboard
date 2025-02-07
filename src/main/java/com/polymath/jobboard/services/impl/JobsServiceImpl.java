@@ -1,5 +1,6 @@
 package com.polymath.jobboard.services.impl;
 
+import com.polymath.jobboard.dto.requests.AdvancedFilterRequest;
 import com.polymath.jobboard.dto.requests.JobsRequest;
 import com.polymath.jobboard.dto.response.JobsResponse;
 import com.polymath.jobboard.exceptions.CustomBadRequest;
@@ -15,7 +16,6 @@ import com.polymath.jobboard.repositories.JobsRepositories;
 import com.polymath.jobboard.repositories.UsersRepositories;
 import com.polymath.jobboard.repositories.specifications.JobSpecification;
 import com.polymath.jobboard.services.JobsService;
-import com.polymath.jobboard.services.UserService;
 import com.polymath.jobboard.utils.RoleUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -25,10 +25,8 @@ import org.springframework.stereotype.Service;
 
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class JobsServiceImpl implements JobsService {
@@ -124,20 +122,26 @@ public class JobsServiceImpl implements JobsService {
         return new JobsResponse(jobId,job.getEmployers().getCompanyName(),job.getEmployers().getCompanyDescription(),job.getEmployers().getWebsiteUrl(),job.getTitle(),job.getDescription(),job.getLocation(),job.getCategory(),job.getSalary(),job.getPostedAt(),job.getExpiresAt(),job.getStatus());
     }
 
-//    @Override
-//    public Page<JobsResponse> searchJobsByTitleOrDescriptionOrLocationOrCategoryOrCompanyName(String search, Pageable pageable) {
-//
-//        Page<Jobs> response = jobsRepositories.findAllByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCaseOrLocationContainingIgnoreCaseOrCategoryContainingIgnoreCase(search,pageable);
-//        List<Jobs> jobs = response.getContent();
-//        return getJobsResponses(pageable, response);
-//    }
+    @Override
+    public Page<JobsResponse> advanceSearch(String search, Pageable pageable) {
+        Page<Jobs> response = jobsRepositories.advanceJobsSearch(search,pageable);
+        return getJobsResponses(pageable, response);
+    }
 
     @Override
-    public Page<JobsResponse> filterJobs(String title, String location, String description, String companyName, Double minSalary, Double maxSalary, String category, LocalDateTime startsAt,LocalDateTime endsAt,Pageable pageable) {
-        if((title==null || title.isEmpty())&&(location==null||location.isEmpty())&&(description==null||description.isEmpty())&&(companyName==null||companyName.isEmpty())&&(category==null||category.isEmpty())&&(minSalary==null||minSalary<0)&&(maxSalary==null||maxSalary<0)) {
-            throw new CustomBadRequest("At least one search parameter is required. It can be job title,description,company name,category ");
+    public Page<JobsResponse> filterJobs(String title,String description,String companyName,String location,String category,Double minSalary,Double maxSalary, LocalDateTime startsAt, LocalDateTime endsAt,Pageable pageable) {
+        boolean hasValidSearchCriteria = Stream.of(
+                title, location, description, companyName, category
+        ).anyMatch(str -> str != null && !str.trim().isEmpty()) ||
+                (minSalary != null && minSalary >= 0) ||
+                (maxSalary != null  && maxSalary >= 0) ||
+                startsAt != null ||
+                endsAt != null;
+        if (!hasValidSearchCriteria) {
+            throw new CustomBadRequest("At least one valid search parameter is required (job title, description, company name, category, salary range, or date range)");
         }
-        Specification<Jobs> spec = JobSpecification.filterJobByTitleOrDescriptionOrLocationOrCategoryOrSalaryRange(title,description,location,category,minSalary,maxSalary,startsAt,endsAt);
+        AdvancedFilterRequest filter = new AdvancedFilterRequest(title, description, companyName, location, category, minSalary, maxSalary, startsAt, endsAt);
+        Specification<Jobs> spec = JobSpecification.advancedFilter(filter);
         Page<Jobs> jobs = jobsRepositories.findAll(spec,pageable);
         return getJobsResponses(pageable, jobs);
     }
