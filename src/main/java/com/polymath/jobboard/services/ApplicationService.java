@@ -15,4 +15,5 @@ public interface ApplicationService {
     List<ApplicationResponse> getAllApplicationsForJobIdByEmployee(String email, Long jobId);
     List<ApplicationResponse> getAllApplicationsByEmployee(String email);
     void updateApplicationStatus(Long applicationId,Long jobSeekerId,String employerEmail, ApplicationStatus status);
+    void deleteApplication(Long applicationId,Long jobId,String email);
 }

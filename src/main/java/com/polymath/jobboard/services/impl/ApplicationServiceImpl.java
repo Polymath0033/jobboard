@@ -126,6 +126,16 @@ public class ApplicationServiceImpl implements ApplicationService {
         applicationsRepository.save(applications);
     }
 
+    @Override
+    public void deleteApplication(Long applicationId, Long jobId, String email) {
+        if(applicationId == null || jobId == null || email == null) {
+            throw new CustomBadRequest("Bad request - required parameters missing");
+        }
+        JobSeekers jobSeekers = jobSeekersRepository.findByJobSeekerEmail(email).orElseThrow(()->new UserDoesNotExists("Either you are not authenticated or you are yet to complete your profile before you can delete an application"));
+      Applications applications = applicationsRepository.findApplicationsByApplicationJobIdJobSeekerId(applicationId,jobId, jobSeekers.getId()).orElseThrow(()->new CustomNotFound("Application not found with id: "+applicationId + " for job id: "+jobId+" and job seeker id: "+ jobSeekers.getId()));
+        applicationsRepository.delete(applications);
+    }
+
     private List<ApplicationResponse> getApplicationResponses(List<Applications> applications) {
         return     applications.stream().map(ap -> new ApplicationResponse(ap.getResumeUrl(),ap.getCoverLetter(),ap.getAppliedAt(),ap.getStatus(),new JobSeeker(ap.getJobSeekers().getUser().getEmail(),ap.getJobSeekers().getFirstName(),ap.getJobSeekers().getLastName(),ap.getJobSeekers().getSkills()),new JobsData(ap.getJobs().getEmployers().getCompanyName(),ap.getJobs().getEmployers().getWebsiteUrl(),ap.getJobs().getTitle(),ap.getJobs().getStatus(),ap.getJobs().getPostedAt(),ap.getJobs().getExpiresAt(),ap.getJobs().getSalary(),ap.getJobs().getCategory()))).toList();
     }

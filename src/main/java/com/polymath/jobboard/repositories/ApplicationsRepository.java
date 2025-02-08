@@ -33,8 +33,12 @@ join fetch jobs.employers employers
 join fetch employers.user user
 where applications.id=:applicationId
 and applications.jobSeekers.id=:jobSeekerId
-and user.email=:email
+and user.email=:employerEmail
 """)
     Optional<Applications> findApplicationsByApplicationJobSeekerIdEmployerEmail(Long applicationId,Long jobSeekerId,String employerEmail);
 
+    @Query("""
+select applications from Applications applications join fetch applications.jobs jobs where applications.id=:applicationId and jobs.id=:jobId and applications.jobSeekers.id=:jobSeekerId
+""")
+    Optional<Applications> findApplicationsByApplicationJobIdJobSeekerId(Long applicationId,Long jobId,Long jobSeekerId);
 }

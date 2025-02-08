@@ -60,6 +60,14 @@ public class ApplicationsController {
         applicationService.updateApplicationStatus(applicationId,jobSeekerId,email,status);
         return ResponseHandler.handleResponse("", HttpStatus.OK,"Successfully updated application");
     }
+    @DeleteMapping("jobs/{applicationId}/{jobId}")
+    @PreAuthorize("hasRole('JOB_SEEKER')")
+    public ResponseEntity<?> deleteJobSeekerApplication(@PathVariable Long applicationId, @PathVariable Long jobId,@RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.substring(7);
+        String email = jwtService.extractEmail(token);
+        applicationService.deleteApplication(applicationId,jobId,email);
+        return ResponseHandler.handleResponse("", HttpStatus.OK,"Successfully deleted application");
+    }
 
 
     @GetMapping("/job-seeker/applications")
