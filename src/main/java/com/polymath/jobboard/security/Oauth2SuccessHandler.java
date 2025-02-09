@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.polymath.jobboard.dto.response.AuthResponse;
 import com.polymath.jobboard.dto.response.UserInfo;
 import com.polymath.jobboard.exceptions.UserDoesNotExists;
-import com.polymath.jobboard.models.Users;
 import com.polymath.jobboard.services.JwtService;
+import com.polymath.jobboard.services.UserDataService;
 import com.polymath.jobboard.services.UserService;
 import com.polymath.jobboard.utils.responseHandler.ResponseHandler;
 import jakarta.servlet.ServletException;
@@ -25,6 +25,7 @@ public class Oauth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final JwtService jwtService;
     private final UserService userService;
     private final ObjectMapper objectMapper;
+
 
     public Oauth2SuccessHandler(JwtService service, UserService userService, ObjectMapper objectMapper) {
         this.jwtService = service;
@@ -46,21 +47,21 @@ public class Oauth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 //            response.setContentType("application/json");
             UserInfo userInfo = userService.getUserInfo(email);
             AuthResponse authResponse = new AuthResponse(accessToken, userInfo);
-            sendSuccessResponse(response,authResponse,HttpStatus.OK,"Oauth2 successfull");
+            sendSuccessResponse(response,authResponse);
         } catch (IOException e) {
-            sendFailureResponse(response,HttpStatus.INTERNAL_SERVER_ERROR,"Authentication fAiled");
+            sendFailureResponse(response);
         }
     }
-    private void sendSuccessResponse(HttpServletResponse response, Object data, HttpStatus status,String message) throws IOException {
-        response.setStatus(status.value());
+    private void sendSuccessResponse(HttpServletResponse response, Object data) throws IOException {
+        response.setStatus(HttpStatus.OK.value());
         response.setContentType("application/json");
-        ResponseEntity<Object> responseEntity = ResponseHandler.handleResponse(data,status,message);
+        ResponseEntity<Object> responseEntity = ResponseHandler.handleResponse(data, HttpStatus.OK, "Oauth2 successfull");
         response.getWriter().write(objectMapper.writeValueAsString(responseEntity.getBody()));
     }
-    private void sendFailureResponse(HttpServletResponse response,HttpStatus status,String message) throws IOException {
-        response.setStatus(status.value());
+    private void sendFailureResponse(HttpServletResponse response) throws IOException {
+        response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
         response.setContentType("application/json");
-        ResponseEntity<Object> responseEntity = ResponseHandler.handleResponse(null,status,message);
+        ResponseEntity<Object> responseEntity = ResponseHandler.handleResponse(null, HttpStatus.INTERNAL_SERVER_ERROR, "Authentication fAiled");
         response.getWriter().write(objectMapper.writeValueAsString(responseEntity.getBody()));
     }
 }

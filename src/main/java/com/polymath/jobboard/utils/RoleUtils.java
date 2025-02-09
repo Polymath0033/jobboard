@@ -24,7 +24,6 @@ public class RoleUtils {
         }
     }
     public void validateSingleRole(UserRole role) {
-        System.out.println(role);
         if(!hasRole(role)) {
             throw new SingleRoleBasedException("Access denied",role);
         }

@@ -5,15 +5,18 @@ import com.polymath.jobboard.dto.requests.JobSeekersDto;
 import com.polymath.jobboard.dto.response.AllUserResponse;
 import com.polymath.jobboard.dto.response.EmployersResponse;
 import com.polymath.jobboard.dto.response.JobSeekersResponse;
+import com.polymath.jobboard.models.enums.UserRole;
+import jakarta.mail.Multipart;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public interface UserDataService {
 
 //    JobSeeker service
-    JobSeekersResponse addJobSeeker(JobSeekersDto jobSeeker);
+    JobSeekersResponse addJobSeeker(JobSeekersDto jobSeeker, MultipartFile file);
 
-    JobSeekersResponse updateJobSeeker(Long id,JobSeekersDto jobSeeker);
+    JobSeekersResponse updateJobSeeker(Long id,JobSeekersDto jobSeeker,MultipartFile file);
 
     JobSeekersResponse getJobSeeker(String email);
 

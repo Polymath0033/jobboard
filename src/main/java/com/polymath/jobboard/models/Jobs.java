@@ -3,6 +3,7 @@ package com.polymath.jobboard.models;
 import com.polymath.jobboard.models.enums.JobStatus;
 import jakarta.persistence.*;
 import lombok.Data;
+import net.minidev.json.annotate.JsonIgnore;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -30,4 +31,7 @@ public class Jobs {
     private LocalDateTime expiresAt;
     @Enumerated(EnumType.STRING)
     private JobStatus status;
+    @Column(columnDefinition = "tsvector")
+    @JsonIgnore
+    private String searchableText;
 }

@@ -19,4 +19,5 @@ public interface JobSeekersRepository extends JpaRepository<JobSeekers, Long> {
     select jobSeeker from JobSeekers jobSeeker where jobSeeker.user.email=:email
 """)
     Optional<JobSeekers> findByJobSeekerEmail(String email);
+    void deleteByUser(Users user);
 }

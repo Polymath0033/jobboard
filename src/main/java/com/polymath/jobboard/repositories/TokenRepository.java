@@ -8,10 +8,12 @@ import java.util.Optional;
 public interface TokenRepository extends JpaRepository<Tokens, Long> {
 
     Optional<Tokens> findByRefreshToken(String refreshToken);
+    Optional<Tokens> findByUserEmail(String email);
     void deleteByRefreshToken(String refreshToken);
     void deleteByUserId(Long tokenId);
 
     boolean findByUserId(Long userId);
+    boolean existsByUserEmail(String email);
 
     // Optional<Tokens> findByUserIdA
 

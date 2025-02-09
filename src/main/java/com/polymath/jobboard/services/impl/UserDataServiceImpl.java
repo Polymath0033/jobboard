@@ -1,5 +1,7 @@
 package com.polymath.jobboard.services.impl;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.polymath.jobboard.dto.requests.EmployersDto;
 import com.polymath.jobboard.dto.requests.JobSeekersDto;
 import com.polymath.jobboard.dto.response.*;
@@ -15,10 +17,15 @@ import com.polymath.jobboard.repositories.JobSeekersRepository;
 import com.polymath.jobboard.repositories.UsersRepositories;
 import com.polymath.jobboard.services.UserDataService;
 import com.polymath.jobboard.utils.RoleUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class UserDataServiceImpl implements UserDataService {
@@ -27,6 +34,8 @@ public class UserDataServiceImpl implements UserDataService {
     private final EmployersRepository employersRepository;
     private final RoleUtils roleUtils;
 
+    @Autowired
+    private Cloudinary cloudinary;
 
     public UserDataServiceImpl(JobSeekersRepository jobSeekersRepository, UsersRepositories usersRepositories, EmployersRepository employersRepository, RoleUtils roleUtils) {
         this.jobSeekersRepository = jobSeekersRepository;
@@ -36,46 +45,54 @@ public class UserDataServiceImpl implements UserDataService {
     }
 
     @Override
-    public JobSeekersResponse addJobSeeker(JobSeekersDto request) {
+    public JobSeekersResponse addJobSeeker(JobSeekersDto request,MultipartFile resumeFile) {
         roleUtils.validateSingleRole(UserRole.JOB_SEEKER);
-        try {
-            if(request.email()==null||request.firstName()==null||request.lastName()==null){
+
+            if (request.email() == null || request.firstName() == null || request.lastName() == null) {
                 throw new CustomBadRequest("Enter appropriate data");
             }
-            Users user= usersRepositories.findByEmail(request.email()).orElseThrow(() -> new UserDoesNotExists("User is not authenticated yet"));
-            UserRole role = user.getRole();
-            if(role!=UserRole.JOB_SEEKER){
-                throw new UserDoesNotExists("You need to register as a job seeker in order to access this");
-            }
-            JobSeekers jobSeekers = new JobSeekers();
-            jobSeekers.setFirstName(request.firstName());
-            jobSeekers.setLastName(request.lastName());
-            jobSeekers.setUser(user);
-            jobSeekers.setResumeUrl(request.resumeUrl());
-            jobSeekers.setSkills(request.skills());
-            jobSeekers.setExperiences(request.experiences());
-            jobSeekersRepository.save(jobSeekers);
-            return new JobSeekersResponse(jobSeekers.getId(),user.getEmail(), request.firstName(),request.lastName(),request.resumeUrl(),request.skills(),request.experiences());
-        } catch (CustomBadRequest | UserDoesNotExists e) {
-            throw new RuntimeException(e);
-        }
+            Users user = usersRepositories.findByEmail(request.email()).orElseThrow(() -> new UserDoesNotExists("User is not authenticated yet"));
 
+            Optional<JobSeekers> existingJobSeeker = jobSeekersRepository.findByJobSeekerEmail(request.email());
+            if(existingJobSeeker.isPresent()){
+                JobSeekers jobSeekers = existingJobSeeker.get();
+                return jobSeekersResponse(jobSeekers);
+            }
+            String resumeUrl = "";
+            if(resumeFile!=null&&!resumeFile.isEmpty()){
+                resumeUrl = uploadResumeToCloudinary(resumeFile);
+            }
+                JobSeekers jobSeeker = new JobSeekers();
+                jobSeeker.setFirstName(request.firstName());
+                jobSeeker.setLastName(request.lastName());
+                jobSeeker.setUser(user);
+                jobSeeker.setResumeUrl(resumeUrl);
+                jobSeeker.setSkills(request.skills());
+                jobSeeker.setExperiences(request.experiences());
+                jobSeekersRepository.save(jobSeeker);
+               return jobSeekersResponse(jobSeeker);
     }
 
+
+
     @Override
-    public JobSeekersResponse updateJobSeeker(Long id, JobSeekersDto request) {
+    public JobSeekersResponse updateJobSeeker(Long id, JobSeekersDto request,MultipartFile resumeFile) {
         roleUtils.validateSingleRole(UserRole.JOB_SEEKER);
         if(id==null||request.email()==null||request.firstName()==null||request.lastName()==null){
             throw new CustomBadRequest("Enter appropriate data");
         }
         JobSeekers existingJobSeekers = jobSeekersRepository.findById(id).orElseThrow(()->new CustomNotFound("JobSeeker with this is id: " + id + " does not exist"));
+        String resumeUrl ="";
+        if(resumeFile!=null&&!resumeFile.isEmpty()){
+            resumeUrl = uploadResumeToCloudinary(resumeFile);
+        }
         existingJobSeekers.setFirstName(request.firstName());
         existingJobSeekers.setLastName(request.lastName());
         existingJobSeekers.setSkills(request.skills());
         existingJobSeekers.setExperiences(request.experiences());
-        existingJobSeekers.setResumeUrl(request.resumeUrl());
+        existingJobSeekers.setResumeUrl(resumeUrl);
         jobSeekersRepository.save(existingJobSeekers);
-        return new JobSeekersResponse(existingJobSeekers.getId(), existingJobSeekers.getUser().getEmail(),request.firstName(),request.lastName(),request.resumeUrl(),request.skills(),request.experiences());
+        return jobSeekersResponse(existingJobSeekers);
     }
 
     @Override
@@ -162,6 +179,7 @@ public class UserDataServiceImpl implements UserDataService {
         return new  EmployersResponse(employer.getId(),user.getEmail(),employer.getCompanyName(),employer.getCompanyDescription(),employer.getLogoUrl(),employer.getWebsiteUrl());
     }
 
+
     @Override
     public AllUserResponse getAllEmployersData() {
         roleUtils.validateSingleRole(UserRole.ADMIN);
@@ -176,8 +194,6 @@ public class UserDataServiceImpl implements UserDataService {
         roleUtils.validateSingleRole(UserRole.ADMIN);
         List<Employers> allEmployers = employersRepository.findAll();
         List<JobSeekers> allJobSeekers = jobSeekersRepository.findAll();
-        System.out.println(allEmployers);
-        System.out.println(allJobSeekers);
         List<Object> combinedUsers = new ArrayList<>();
         allEmployers.forEach(employers -> combinedUsers.add(new EmployerDto(employers.getId(),employers.getUser().getEmail(),employers.getUser().getRole(),employers.getCompanyName(),employers.getCompanyDescription(),employers.getLogoUrl(),employers.getWebsiteUrl())));
         allJobSeekers.forEach(jobSeekers -> combinedUsers.add(new JobSeekerDto(jobSeekers.getId(), jobSeekers.getUser().getEmail(),jobSeekers.getUser().getRole(),jobSeekers.getFirstName(),jobSeekers.getLastName(),jobSeekers.getResumeUrl(),jobSeekers.getSkills(),jobSeekers.getExperiences())));
@@ -193,4 +209,26 @@ public class UserDataServiceImpl implements UserDataService {
     }
 
 
+    private String uploadResumeToCloudinary(MultipartFile file) {
+        try {
+
+            Map uploadResult =cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+            System.out.println(uploadResult);
+            return uploadResult.get("url").toString();
+        }catch (IOException e) {
+            throw new RuntimeException("Failed to upload resume: "+e.getMessage(),e);
+        }
+    }
+
+    private JobSeekersResponse jobSeekersResponse(JobSeekers jobSeeker) {
+        return new JobSeekersResponse(
+                jobSeeker.getId(),
+                jobSeeker.getUser().getEmail(),
+                jobSeeker.getFirstName(),
+                jobSeeker.getLastName(),
+                jobSeeker.getResumeUrl(),
+                jobSeeker.getSkills(),
+                jobSeeker.getExperiences()
+        );
+    }
 }

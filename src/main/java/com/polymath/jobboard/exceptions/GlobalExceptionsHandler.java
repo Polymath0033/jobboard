@@ -4,10 +4,12 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.polymath.jobboard.dto.response.ErrorResponse;
 import com.polymath.jobboard.dto.response.ErrorValidationResponse;
 import com.polymath.jobboard.utils.responseHandler.ResponseHandler;
+import io.jsonwebtoken.ExpiredJwtException;
 import org.apache.tomcat.websocket.AuthenticationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -84,6 +86,23 @@ public class GlobalExceptionsHandler {
     @ExceptionHandler(AuthenticationException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ErrorResponse handleAuthenticationException(AuthenticationException ex) {
+        return new ErrorResponse(HttpStatus.UNAUTHORIZED.value(),ex.getMessage(),System.currentTimeMillis());
+    }
+
+    @ExceptionHandler(CustomNotAuthorized.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErrorResponse handleNotAuthorizedException(CustomNotAuthorized ex) {
+        return new ErrorResponse(HttpStatus.UNAUTHORIZED.value(),ex.getMessage(),System.currentTimeMillis());
+    }
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErrorResponse handleExpiredJwtException(ExpiredJwtException ex) {
+        return new ErrorResponse(HttpStatus.UNAUTHORIZED.value(),ex.getMessage(),System.currentTimeMillis());
+    }
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErrorResponse handleAuthorizationException(AuthorizationDeniedException ex) {
         return new ErrorResponse(HttpStatus.UNAUTHORIZED.value(),ex.getMessage(),System.currentTimeMillis());
     }
 

@@ -14,7 +14,7 @@ public class SavedJobs {
     private Long id;
     @ManyToOne
     @JoinColumn(name = "job_id",nullable = false)
-    private Jobs job;
+    private Jobs jobs;
     @ManyToOne
     @JoinColumn(name = "job_seeker_id",nullable = false)
     private JobSeekers jobSeekers;

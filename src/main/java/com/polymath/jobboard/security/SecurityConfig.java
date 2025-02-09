@@ -47,7 +47,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req->
                         req.requestMatchers(
-                                "/api/auth/**","/api/v1/jobs","/api/v1/jobs/{id}","/api/v1/jobs/**").permitAll()
+                                "/api/auth/**","/api/v1/jobs","/api/v1/jobs/{id}","/api/v1/jobs/**","/oauth2/**",           // Allow OAuth2 endpoints
+                                        "/login/**",              // Allow login page
+                                        "/oauth/**" ).permitAll()
 //                                JOB_SEEKERS
                                 .requestMatchers("/api/v1/jobs-seeker/**","/api/v1/jobs/{id}/apply","/api/v1/jobs/{id}/save","/api/v1/user/job-seeker/**").hasRole("JOB_SEEKER")
 //                                 EMPLOYER
@@ -60,7 +62,7 @@ public class SecurityConfig {
                             response.setStatus(HttpStatus.UNAUTHORIZED.value());
                             Map<String,Object> responseBody = new HashMap<>();
                             responseBody.put("status", HttpStatus.UNAUTHORIZED.value());
-                            responseBody.put("message", "Authentication Required");
+                            responseBody.put("message", authException.getMessage());
                             responseBody.put("data",null);
                             new ObjectMapper().writeValue(response.getOutputStream(),responseBody);
                         })

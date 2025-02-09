@@ -2,6 +2,7 @@ package com.polymath.jobboard.controllers;
 
 import com.polymath.jobboard.dto.response.JobsResponse;
 import com.polymath.jobboard.services.JobsService;
+import com.polymath.jobboard.services.JwtService;
 import com.polymath.jobboard.utils.responseHandler.ResponseHandler;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,12 +16,18 @@ import java.time.LocalDateTime;
 @RequestMapping("/api/v1/jobs")
 public class PublicController {
     private final JobsService jobsService;
-    public PublicController(JobsService jobsService) {
+    private final JwtService jwtService;
+    public PublicController(JobsService jobsService, JwtService jwtService) {
         this.jobsService = jobsService;
+        this.jwtService = jwtService;
     }
 
     @GetMapping("")
-    public ResponseEntity<Page<JobsResponse>> getAllJobs(Pageable pageable) {
+    public ResponseEntity<Page<JobsResponse>> getAllJobs(Pageable pageable,@RequestHeader(value = "Authorization",required = false) String authHeader) {
+        if(authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            String email = jwtService.extractEmail(token);
+        }
         return ResponseEntity.ok(jobsService.getAllJobs(pageable));
     }
 

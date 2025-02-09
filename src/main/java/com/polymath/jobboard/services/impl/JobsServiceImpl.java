@@ -7,15 +7,18 @@ import com.polymath.jobboard.exceptions.CustomBadRequest;
 import com.polymath.jobboard.exceptions.CustomNotFound;
 import com.polymath.jobboard.exceptions.UserDoesNotExists;
 import com.polymath.jobboard.models.Employers;
+import com.polymath.jobboard.models.JobSeekers;
 import com.polymath.jobboard.models.Jobs;
 import com.polymath.jobboard.models.Users;
 import com.polymath.jobboard.models.enums.JobStatus;
 import com.polymath.jobboard.models.enums.UserRole;
 import com.polymath.jobboard.repositories.EmployersRepository;
+import com.polymath.jobboard.repositories.JobSeekersRepository;
 import com.polymath.jobboard.repositories.JobsRepositories;
 import com.polymath.jobboard.repositories.UsersRepositories;
 import com.polymath.jobboard.repositories.specifications.JobSpecification;
 import com.polymath.jobboard.services.JobsService;
+import com.polymath.jobboard.utils.GenerateTsQuery;
 import com.polymath.jobboard.utils.RoleUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -34,12 +37,14 @@ public class JobsServiceImpl implements JobsService {
     private final UsersRepositories usersRepositories;
     private final RoleUtils roleUtils;
     private final EmployersRepository employersRepository;
+    private final JobSeekersRepository jobSeekersRepository;
 
-    public JobsServiceImpl(JobsRepositories jobsRepositories, UsersRepositories usersRepositories, RoleUtils roleUtils, EmployersRepository employersRepository) {
+    public JobsServiceImpl(JobsRepositories jobsRepositories, UsersRepositories usersRepositories, RoleUtils roleUtils, EmployersRepository employersRepository, JobSeekersRepository jobSeekersRepository) {
         this.jobsRepositories = jobsRepositories;
         this.usersRepositories = usersRepositories;
         this.roleUtils = roleUtils;
         this.employersRepository = employersRepository;
+        this.jobSeekersRepository = jobSeekersRepository;
     }
 
     @Override
@@ -111,6 +116,14 @@ public class JobsServiceImpl implements JobsService {
 
     }
 
+    @Override
+    public Page<JobsResponse> getAllJobsForAuthorizedUsers(Pageable pageable, String email) {
+        JobSeekers jobSeekers = jobSeekersRepository.findByJobSeekerEmail(email).orElseThrow(()->new CustomNotFound("Not authorized"));
+        String query = GenerateTsQuery.generateTsQuery(jobSeekers);
+        Page<Jobs> allJobs = jobsRepositories.findSimilarJobs(query, pageable);
+        return getJobsResponses(pageable, allJobs);
+    }
+
     private Page<JobsResponse> getJobsResponses(Pageable pageable, Page<Jobs> allJobs) {
         List<JobsResponse> responses = allJobs.getContent().stream().map(j->new JobsResponse(j.getId(),j.getEmployers().getCompanyName(),j.getEmployers().getCompanyDescription(),j.getEmployers().getWebsiteUrl(),j.getTitle(),j.getDescription(),j.getLocation(),j.getCategory(),j.getSalary(),j.getPostedAt(),j.getExpiresAt(),j.getStatus())).toList();
         return new PageImpl<>(responses,pageable,allJobs.getTotalElements());
@@ -154,4 +167,6 @@ public class JobsServiceImpl implements JobsService {
         Page<Jobs> jobs = jobsRepositories.findAllByTitleContainingIgnoreCase(title,pageable);
         return getJobsResponses(pageable, jobs);
     }
+
+
 }

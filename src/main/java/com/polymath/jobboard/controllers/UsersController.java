@@ -8,9 +8,11 @@ import com.polymath.jobboard.services.UserDataService;
 import com.polymath.jobboard.services.JwtService;
 import com.polymath.jobboard.utils.responseHandler.ResponseHandler;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/user")
@@ -24,17 +26,19 @@ public class UsersController {
         this.jwtService = jwtService;
     }
 
-    @PostMapping("/job-seeker")
+    @PostMapping(value = "/job-seeker",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('JOB_SEEKER')")
-    public ResponseEntity<?> savedJobSeeker(@RequestBody JobSeekersDto jobSeekers){
-        JobSeekersResponse response = userDataService.addJobSeeker(jobSeekers);
+    public ResponseEntity<?> savedJobSeeker(@ModelAttribute JobSeekersDto jobSeekers,@RequestPart(required = false,value = "resumeFile") MultipartFile resumeFile) {
+        System.out.println("From controller"+jobSeekers);
+        System.out.println("From controller"+resumeFile);
+        JobSeekersResponse response = userDataService.addJobSeeker(jobSeekers,resumeFile);
         return ResponseHandler.handleResponse(response,HttpStatus.CREATED,"Job Seeker details created");
     }
 
     @PutMapping("/job-seeker/{id}")
     @PreAuthorize("hasRole('JOB_SEEKER')")
-    public ResponseEntity<?> updateJobSeeker(@RequestBody JobSeekersDto jobSeekers, @PathVariable Long id){
-        JobSeekersResponse response = userDataService.updateJobSeeker(id,jobSeekers);
+    public ResponseEntity<?> updateJobSeeker(@ModelAttribute JobSeekersDto jobSeekers, @PathVariable Long id,@RequestPart(required = false) MultipartFile resumeFile) {
+        JobSeekersResponse response = userDataService.updateJobSeeker(id,jobSeekers,resumeFile);
         return ResponseHandler.handleResponse(response,HttpStatus.OK,"Job Seeker details updated");
    }
 

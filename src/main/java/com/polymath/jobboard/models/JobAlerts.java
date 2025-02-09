@@ -15,5 +15,6 @@ public class JobAlerts {
     private JobSeekers jobSeeker;
     @Column(nullable = false)
     private String searchedQuery;
-    private AlertFrequency frequency;
+    @Enumerated(EnumType.STRING)
+    private AlertFrequency frequency=AlertFrequency.DAILY;
 }
