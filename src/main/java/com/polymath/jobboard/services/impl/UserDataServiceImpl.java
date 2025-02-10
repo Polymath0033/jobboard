@@ -15,16 +15,13 @@ import com.polymath.jobboard.models.enums.UserRole;
 import com.polymath.jobboard.repositories.EmployersRepository;
 import com.polymath.jobboard.repositories.JobSeekersRepository;
 import com.polymath.jobboard.repositories.UsersRepositories;
+import com.polymath.jobboard.services.CloudinaryUploadService;
 import com.polymath.jobboard.services.UserDataService;
 import com.polymath.jobboard.utils.RoleUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -33,19 +30,18 @@ public class UserDataServiceImpl implements UserDataService {
     private final UsersRepositories usersRepositories;
     private final EmployersRepository employersRepository;
     private final RoleUtils roleUtils;
+    private final CloudinaryUploadService cloudinaryUploadService;
 
-    @Autowired
-    private Cloudinary cloudinary;
-
-    public UserDataServiceImpl(JobSeekersRepository jobSeekersRepository, UsersRepositories usersRepositories, EmployersRepository employersRepository, RoleUtils roleUtils) {
+    public UserDataServiceImpl(JobSeekersRepository jobSeekersRepository, UsersRepositories usersRepositories, EmployersRepository employersRepository, RoleUtils roleUtils, CloudinaryUploadService cloudinaryUploadService) {
         this.jobSeekersRepository = jobSeekersRepository;
         this.usersRepositories = usersRepositories;
         this.employersRepository = employersRepository;
         this.roleUtils = roleUtils;
+        this.cloudinaryUploadService = cloudinaryUploadService;
     }
 
     @Override
-    public JobSeekersResponse addJobSeeker(JobSeekersDto request,MultipartFile resumeFile) {
+    public JobSeekersResponse addJobSeeker(JobSeekersDto request) {
         roleUtils.validateSingleRole(UserRole.JOB_SEEKER);
 
             if (request.email() == null || request.firstName() == null || request.lastName() == null) {
@@ -59,8 +55,8 @@ public class UserDataServiceImpl implements UserDataService {
                 return jobSeekersResponse(jobSeekers);
             }
             String resumeUrl = "";
-            if(resumeFile!=null&&!resumeFile.isEmpty()){
-                resumeUrl = uploadResumeToCloudinary(resumeFile);
+            if(request.resumeFile()!=null&&!request.resumeFile().isEmpty()){
+                resumeUrl = cloudinaryUploadService.uploadFile(request.resumeFile(),"resume");
             }
                 JobSeekers jobSeeker = new JobSeekers();
                 jobSeeker.setFirstName(request.firstName());
@@ -76,16 +72,17 @@ public class UserDataServiceImpl implements UserDataService {
 
 
     @Override
-    public JobSeekersResponse updateJobSeeker(Long id, JobSeekersDto request,MultipartFile resumeFile) {
+    public JobSeekersResponse updateJobSeeker(Long id, JobSeekersDto request) {
         roleUtils.validateSingleRole(UserRole.JOB_SEEKER);
         if(id==null||request.email()==null||request.firstName()==null||request.lastName()==null){
             throw new CustomBadRequest("Enter appropriate data");
         }
         JobSeekers existingJobSeekers = jobSeekersRepository.findById(id).orElseThrow(()->new CustomNotFound("JobSeeker with this is id: " + id + " does not exist"));
-        String resumeUrl ="";
-        if(resumeFile!=null&&!resumeFile.isEmpty()){
-            resumeUrl = uploadResumeToCloudinary(resumeFile);
+
+        if(request.resumeFile()!=null&&!request.resumeFile().isEmpty()){
+            cloudinaryUploadService.deleteFile(existingJobSeekers.getResumeUrl());
         }
+        String resumeUrl =request.resumeFile()!=null&&!request.resumeFile().isEmpty()?cloudinaryUploadService.uploadFile(request.resumeFile(),"resume"):existingJobSeekers.getResumeUrl();
         existingJobSeekers.setFirstName(request.firstName());
         existingJobSeekers.setLastName(request.lastName());
         existingJobSeekers.setSkills(request.skills());
@@ -100,6 +97,13 @@ public class UserDataServiceImpl implements UserDataService {
         roleUtils.validateSingleRole(UserRole.ADMIN);
         if(id==null||jobSeekersRepository.existsById(id)){
             throw new CustomBadRequest("JobSeeker with this is id: " + id + " does not exist");
+        }
+        Optional<JobSeekers> jobSeekers = jobSeekersRepository.findById(id);
+        if(jobSeekers.isPresent()){
+            JobSeekers jobSeeker = jobSeekers.get();
+            if(jobSeeker.getResumeUrl()!=null&&!jobSeeker.getResumeUrl().isEmpty()){
+                cloudinaryUploadService.deleteFile(jobSeeker.getResumeUrl());
+            }
         }
         jobSeekersRepository.deleteById(id);
 
@@ -135,11 +139,20 @@ public class UserDataServiceImpl implements UserDataService {
             throw new CustomBadRequest("Enter appropriate data");
         }
         Users users = usersRepositories.findByEmail(newEmployer.email()).orElseThrow(()->new UserDoesNotExists("This user is not authenticated yet"));
+        Optional<Employers> emp = employersRepository.findByUser(users);
+        if(emp.isPresent()){
+            Employers employers = emp.get();
+            return new EmployersResponse(employers.getId(),users.getEmail(), employers.getCompanyName(),employers.getCompanyDescription(),employers.getLogoUrl(),employers.getWebsiteUrl());
+        }
+        String companyLogo = "";
+        if(newEmployer.companyLogo()!=null&&!newEmployer.companyLogo().isEmpty()){
+            companyLogo=cloudinaryUploadService.uploadFile(newEmployer.companyLogo(),"companyLogo");
+        }
         Employers employers = new Employers();
         employers.setCompanyName(newEmployer.companyName());
         employers.setUser(users);
         employers.setCompanyDescription(newEmployer.companyDescription());
-        employers.setLogoUrl(newEmployer.companyLogo());
+        employers.setLogoUrl(companyLogo);
         employers.setWebsiteUrl(newEmployer.websiteUrl());
         employersRepository.save(employers);
         return new EmployersResponse(employers.getId(),users.getEmail(), employers.getCompanyName(),employers.getCompanyDescription(),employers.getLogoUrl(),employers.getWebsiteUrl());
@@ -152,9 +165,14 @@ public class UserDataServiceImpl implements UserDataService {
             throw new CustomBadRequest("Enter appropriate data");
         }
         Employers existingEmployer = employersRepository.findById(id).orElseThrow(()->new UserDoesNotExists("Employer with this is id: " + id + " does not exist"));
+
+            if(existingEmployer.getLogoUrl()!=null&&!existingEmployer.getLogoUrl().isEmpty()){
+                cloudinaryUploadService.deleteFile(existingEmployer.getLogoUrl());
+            }
+        String logoUrl = employer.companyLogo() != null && !employer.companyLogo().isEmpty()?cloudinaryUploadService.uploadFile(employer.companyLogo(),"companyLogo"):existingEmployer.getLogoUrl();
         existingEmployer.setCompanyName(employer.companyName());
         existingEmployer.setCompanyDescription(employer.companyDescription());
-        existingEmployer.setLogoUrl(employer.companyLogo());
+        existingEmployer.setLogoUrl(logoUrl);
         existingEmployer.setWebsiteUrl(employer.websiteUrl());
         employersRepository.save(existingEmployer);
         return new EmployersResponse(existingEmployer.getId(),existingEmployer.getUser().getEmail(),existingEmployer.getCompanyName(),existingEmployer.getCompanyDescription(),existingEmployer.getLogoUrl(),existingEmployer.getWebsiteUrl());
@@ -165,6 +183,13 @@ public class UserDataServiceImpl implements UserDataService {
         roleUtils.validateSingleRole(UserRole.ADMIN);
         if (id==null||jobSeekersRepository.existsById(id)){
             throw new CustomBadRequest("Employer with this is id: " + id + " does not exist");
+        }
+        Optional<Employers> employers = employersRepository.findById(id);
+        if(employers.isPresent()){
+            Employers emp = employers.get();
+            if (emp.getLogoUrl()!=null&&!emp.getLogoUrl().isEmpty()){
+                cloudinaryUploadService.deleteFile(emp.getLogoUrl());
+            }
         }
         employersRepository.deleteById(id);
     }
@@ -208,17 +233,6 @@ public class UserDataServiceImpl implements UserDataService {
         return new AllUserResponse(usersDtoList);
     }
 
-
-    private String uploadResumeToCloudinary(MultipartFile file) {
-        try {
-
-            Map uploadResult =cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
-            System.out.println(uploadResult);
-            return uploadResult.get("url").toString();
-        }catch (IOException e) {
-            throw new RuntimeException("Failed to upload resume: "+e.getMessage(),e);
-        }
-    }
 
     private JobSeekersResponse jobSeekersResponse(JobSeekers jobSeeker) {
         return new JobSeekersResponse(

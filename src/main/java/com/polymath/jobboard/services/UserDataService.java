@@ -14,9 +14,9 @@ import org.springframework.web.multipart.MultipartFile;
 public interface UserDataService {
 
 //    JobSeeker service
-    JobSeekersResponse addJobSeeker(JobSeekersDto jobSeeker, MultipartFile file);
+    JobSeekersResponse addJobSeeker(JobSeekersDto jobSeeker);
 
-    JobSeekersResponse updateJobSeeker(Long id,JobSeekersDto jobSeeker,MultipartFile file);
+    JobSeekersResponse updateJobSeeker(Long id,JobSeekersDto jobSeeker);
 
     JobSeekersResponse getJobSeeker(String email);
 

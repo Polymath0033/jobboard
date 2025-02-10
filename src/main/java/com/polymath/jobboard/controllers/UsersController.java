@@ -26,19 +26,18 @@ public class UsersController {
         this.jwtService = jwtService;
     }
 
-    @PostMapping(value = "/job-seeker",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/job-seeker",consumes = MediaType.MULTIPART_FORM_DATA_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('JOB_SEEKER')")
-    public ResponseEntity<?> savedJobSeeker(@ModelAttribute JobSeekersDto jobSeekers,@RequestPart(required = false,value = "resumeFile") MultipartFile resumeFile) {
-        System.out.println("From controller"+jobSeekers);
-        System.out.println("From controller"+resumeFile);
-        JobSeekersResponse response = userDataService.addJobSeeker(jobSeekers,resumeFile);
+    public ResponseEntity<?> savedJobSeeker(@ModelAttribute JobSeekersDto jobSeekers) {
+        //System.out.println("From controller"+jobSeekers);
+        JobSeekersResponse response = userDataService.addJobSeeker(jobSeekers);
         return ResponseHandler.handleResponse(response,HttpStatus.CREATED,"Job Seeker details created");
     }
 
     @PutMapping("/job-seeker/{id}")
     @PreAuthorize("hasRole('JOB_SEEKER')")
-    public ResponseEntity<?> updateJobSeeker(@ModelAttribute JobSeekersDto jobSeekers, @PathVariable Long id,@RequestPart(required = false) MultipartFile resumeFile) {
-        JobSeekersResponse response = userDataService.updateJobSeeker(id,jobSeekers,resumeFile);
+    public ResponseEntity<?> updateJobSeeker(@ModelAttribute JobSeekersDto jobSeekers, @PathVariable Long id) {
+        JobSeekersResponse response = userDataService.updateJobSeeker(id,jobSeekers);
         return ResponseHandler.handleResponse(response,HttpStatus.OK,"Job Seeker details updated");
    }
 
@@ -51,16 +50,16 @@ public class UsersController {
     return ResponseHandler.handleResponse(response,HttpStatus.OK,"job seeker data");
     }
 
-    @PostMapping("/employer")
+    @PostMapping(value = "/employer",consumes = MediaType.MULTIPART_FORM_DATA_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('EMPLOYER')")
-    public ResponseEntity<?> savedEmployer(@RequestBody EmployersDto employers){
+    public ResponseEntity<?> savedEmployer(@ModelAttribute EmployersDto employers){
         EmployersResponse response = userDataService.addNewEmployer(employers);
         return ResponseHandler.handleResponse(response,HttpStatus.CREATED,"Employer details created");
     }
 
-    @PutMapping("/employer/{id}")
+    @PutMapping(value = "/employer/{id}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('EMPLOYER')")
-    public ResponseEntity<?> updateEmployer(@RequestBody EmployersDto employers, @PathVariable Long id){
+    public ResponseEntity<?> updateEmployer(@ModelAttribute EmployersDto employers, @PathVariable Long id){
         EmployersResponse response = userDataService.updateEmployer(id,employers);
         return ResponseHandler.handleResponse(response,HttpStatus.OK,"Employer details updated");
     }
