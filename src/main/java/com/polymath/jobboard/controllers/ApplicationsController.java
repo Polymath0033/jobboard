@@ -27,7 +27,7 @@ public class ApplicationsController {
 
     @PostMapping("/jobs/{id}/apply")
     @PreAuthorize("hasRole('JOB_SEEKEER')")
-    public ResponseEntity<?> applyJob(@PathVariable("id") Long jobId, @RequestHeader("Authorization") String authHeader, @RequestBody JobApplicationRequest jobApplicationRequest) {
+    public ResponseEntity<?> applyJob(@PathVariable("id") Long jobId, @RequestHeader("Authorization") String authHeader, @ModelAttribute JobApplicationRequest jobApplicationRequest) {
         String token = authHeader.substring(7);
         String email = jwtService.extractEmail(token);
         applicationService.applyForJob(jobId,jobApplicationRequest, email);

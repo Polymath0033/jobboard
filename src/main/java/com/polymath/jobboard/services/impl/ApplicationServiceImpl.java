@@ -20,6 +20,7 @@ import com.polymath.jobboard.repositories.JobSeekersRepository;
 import com.polymath.jobboard.repositories.JobsRepository;
 import com.polymath.jobboard.repositories.UsersRepositories;
 import com.polymath.jobboard.services.ApplicationService;
+import com.polymath.jobboard.services.CloudinaryUploadService;
 import com.polymath.jobboard.utils.RoleUtils;
 import org.springframework.stereotype.Service;
 
@@ -33,12 +34,14 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final JobsRepository jobsRepository;
     private final JobSeekersRepository jobSeekersRepository;
     private final RoleUtils roleUtils;
+    private final CloudinaryUploadService cloudinaryUploadService;
 
-    public ApplicationServiceImpl(ApplicationsRepository applicationsRepository, JobsRepository jobsRepository, JobSeekersRepository jobSeekersRepository, RoleUtils roleUtils, UsersRepositories usersRepositories) {
+    public ApplicationServiceImpl(ApplicationsRepository applicationsRepository, JobsRepository jobsRepository, JobSeekersRepository jobSeekersRepository, RoleUtils roleUtils, UsersRepositories usersRepositories, CloudinaryUploadService cloudinaryUploadService) {
         this.applicationsRepository = applicationsRepository;
         this.jobsRepository = jobsRepository;
         this.jobSeekersRepository = jobSeekersRepository;
         this.roleUtils = roleUtils;
+        this.cloudinaryUploadService = cloudinaryUploadService;
     }
 
     @Override
@@ -46,20 +49,25 @@ public class ApplicationServiceImpl implements ApplicationService {
         if(jobId==null) {
             throw new CustomBadRequest("Bad request");
         }
-        if(request.resumeUrl()==null||request.resumeUrl().isEmpty()) {
-            throw new CustomBadRequest("There must be a resume");
-        }
+
         roleUtils.validateSingleRole(UserRole.JOB_SEEKER);
         Jobs jobs = jobsRepository.findById(jobId).orElseThrow(() -> new CustomBadRequest("Job not found"));
         JobSeekers jobSeekers = jobSeekersRepository.findByJobSeekerEmail(email).orElseThrow(() -> new CustomBadRequest("Either you are not authenticated or you need to update your profile"));
         if(applicationsRepository.existsByJobsAndJobSeekers(jobs,jobSeekers)){
             throw new CustomBadRequest("You can't apply for a job twice is already a job seeker");
         }
+
+        String resumeUrl = "";
+        if(request.resumeUrl()==null||request.resumeUrl().isEmpty()) {
+            throw new CustomBadRequest("There must be a resume");
+        }else {
+          resumeUrl =  cloudinaryUploadService.uploadFile(request.resumeUrl(), "application");
+        }
         Applications applications = new Applications();
         applications.setJobs(jobs);
         applications.setJobSeekers(jobSeekers);
         applications.setAppliedAt(LocalDateTime.now());
-        applications.setResumeUrl(request.resumeUrl());
+        applications.setResumeUrl(resumeUrl);
         applications.setCoverLetter(request.coverLetter());
         applications.setStatus(ApplicationStatus.PENDING);
         applicationsRepository.save(applications);
