@@ -24,13 +24,15 @@ lower(job.employers.companyName) like lower(concat('%', :search, '%') )
 """)
     public Page<Jobs> advanceJobsSearch(@Param("search") String search, Pageable pageable);
 
-    @Query(value = """
-    select job.title,job.description,ts_rank(job.searchable_text,to_tsquery('english',:query)) as rank
-     from Jobs job
-     where job.searchable_text @@ to_tsquery('english',:query)
-     order by
-     rank DESC
-""",nativeQuery = true)
-    Page<Jobs> findSimilarJobs(@Param("query") String query, Pageable pageable);
+
+//    Implementing this later
+//    @Query(value = """
+//    select job.title,job.description,ts_rank(job.searchable_text,to_tsquery('english',:query)) as rank
+//     from Jobs job
+//     where job.searchable_text @@ to_tsquery('english',:query)
+//     order by
+//     rank DESC
+//""",nativeQuery = true)
+//    Page<Jobs> findSimilarJobs(@Param("query") String query, Pageable pageable);
 
 }

@@ -31,7 +31,8 @@ public class Jobs {
     private LocalDateTime expiresAt;
     @Enumerated(EnumType.STRING)
     private JobStatus status;
-    @Column(columnDefinition = "tsvector")
-    @JsonIgnore
-    private String searchableText;
+    //Will implement this later
+//    @Column(columnDefinition = "tsvector")
+//    @JsonIgnore
+//    private String searchableText;
 }

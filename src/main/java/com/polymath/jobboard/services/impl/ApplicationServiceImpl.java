@@ -49,7 +49,6 @@ public class ApplicationServiceImpl implements ApplicationService {
         if(jobId==null) {
             throw new CustomBadRequest("Bad request");
         }
-
         roleUtils.validateSingleRole(UserRole.JOB_SEEKER);
         Jobs jobs = jobsRepository.findById(jobId).orElseThrow(() -> new CustomBadRequest("Job not found"));
         JobSeekers jobSeekers = jobSeekersRepository.findByJobSeekerEmail(email).orElseThrow(() -> new CustomBadRequest("Either you are not authenticated or you need to update your profile"));
@@ -59,7 +58,11 @@ public class ApplicationServiceImpl implements ApplicationService {
 
         String resumeUrl = "";
         if(request.resumeUrl()==null||request.resumeUrl().isEmpty()) {
-            throw new CustomBadRequest("There must be a resume");
+            if(jobSeekers.getResumeUrl()!=null) {
+                resumeUrl = jobSeekers.getResumeUrl();
+            }else {
+                throw new CustomBadRequest("There must be a resume");
+            }
         }else {
           resumeUrl =  cloudinaryUploadService.uploadFile(request.resumeUrl(), "application");
         }

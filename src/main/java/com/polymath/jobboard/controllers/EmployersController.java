@@ -26,12 +26,12 @@ public class EmployersController {
         this.jwtService = jwtService;
     }
 
-    @GetMapping("/jobs")
-    public ResponseEntity<Page<JobsResponse>> getAllJobs(Pageable pageable) {
-        Page<JobsResponse> jobsPage = jobsService.getAllJobs(pageable);
-        return new ResponseEntity<>(jobsPage, HttpStatus.OK);
-
-    }
+//    @GetMapping("/jobs")
+//    public ResponseEntity<Page<JobsResponse>> getAllJobs(Pageable pageable) {
+//        Page<JobsResponse> jobsPage = jobsService.getAllJobs(pageable);
+//        return new ResponseEntity<>(jobsPage, HttpStatus.OK);
+//
+//    }
     @PostMapping("/jobs")
     public ResponseEntity<?> postJob(@RequestBody JobsRequest jobsRequest, @RequestHeader("Authorization") String token) {
         String authHeader=token.substring(7);

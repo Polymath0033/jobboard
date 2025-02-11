@@ -23,11 +23,13 @@ public class PublicController {
     }
 
     @GetMapping("")
-    public ResponseEntity<Page<JobsResponse>> getAllJobs(Pageable pageable,@RequestHeader(value = "Authorization",required = false) String authHeader) {
-        if(authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-            String email = jwtService.extractEmail(token);
-        }
+    public ResponseEntity<Page<JobsResponse>> getAllJobs(Pageable pageable) {
+//Implementing this later
+//        if(authHeader != null && authHeader.startsWith("Bearer ")) {
+//            String token = authHeader.substring(7);
+//            String email = jwtService.extractEmail(token);
+//            return ResponseEntity.ok(jobsService.getAllJobsForAuthorizedUsers(pageable, email));
+//        }
         return ResponseEntity.ok(jobsService.getAllJobs(pageable));
     }
 
