@@ -7,7 +7,7 @@ import com.polymath.jobboard.exceptions.CustomBadRequest;
 import com.polymath.jobboard.exceptions.CustomNotFound;
 import com.polymath.jobboard.exceptions.UserDoesNotExists;
 import com.polymath.jobboard.models.Employers;
-import com.polymath.jobboard.models.JobSeekers;
+
 import com.polymath.jobboard.models.Jobs;
 import com.polymath.jobboard.models.Users;
 import com.polymath.jobboard.models.enums.JobStatus;
@@ -18,7 +18,7 @@ import com.polymath.jobboard.repositories.JobsRepositories;
 import com.polymath.jobboard.repositories.UsersRepositories;
 import com.polymath.jobboard.repositories.specifications.JobSpecification;
 import com.polymath.jobboard.services.JobsService;
-import com.polymath.jobboard.utils.GenerateTsQuery;
+
 import com.polymath.jobboard.utils.RoleUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -26,6 +26,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 
@@ -40,14 +41,12 @@ public class JobsServiceImpl implements JobsService {
     private final UsersRepositories usersRepositories;
     private final RoleUtils roleUtils;
     private final EmployersRepository employersRepository;
-    private final JobSeekersRepository jobSeekersRepository;
 
     public JobsServiceImpl(JobsRepositories jobsRepositories, UsersRepositories usersRepositories, RoleUtils roleUtils, EmployersRepository employersRepository, JobSeekersRepository jobSeekersRepository) {
         this.jobsRepositories = jobsRepositories;
         this.usersRepositories = usersRepositories;
         this.roleUtils = roleUtils;
         this.employersRepository = employersRepository;
-        this.jobSeekersRepository = jobSeekersRepository;
     }
 
     @Override
@@ -178,6 +177,19 @@ public class JobsServiceImpl implements JobsService {
         Page<Jobs> jobs = jobsRepositories.findAllByTitleContainingIgnoreCase(title,pageable);
         return getJobsResponses(pageable, jobs);
     }
+
+    @Scheduled(fixedRate = 3600000)
+    @CacheEvict(value = {"allJobs","advancedSearch","filterJobs","searchJobsByTitle","jobById"},allEntries = true)
+    public void updateExpiredJobs(){
+        LocalDateTime now = LocalDateTime.now();
+        List<Jobs> expiredJobs = jobsRepositories.findExpiredJobs(now);
+        for(Jobs job:expiredJobs){
+            job.updateJobStatus();
+            jobsRepositories.save(job);
+
+        }
+    }
+
 
     private Page<JobsResponse> getJobsResponses(Pageable pageable, Page<Jobs> allJobs) {
         List<JobsResponse> responses = allJobs.getContent().stream().map(j->new JobsResponse(j.getId(),j.getEmployers().getCompanyName(),j.getEmployers().getCompanyDescription(),j.getEmployers().getWebsiteUrl(),j.getTitle(),j.getDescription(),j.getLocation(),j.getCategory(),j.getSalary(),j.getPostedAt(),j.getExpiresAt(),j.getStatus())).toList();

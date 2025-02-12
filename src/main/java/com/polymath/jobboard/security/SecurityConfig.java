@@ -22,7 +22,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import javax.print.attribute.standard.Media;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,7 +48,7 @@ public class SecurityConfig {
                         req.requestMatchers(
                                 "/api/auth/**","/api/v1/jobs","/api/v1/jobs/{id}","/api/v1/jobs/**","/oauth2/**",           // Allow OAuth2 endpoints
                                         "/login/**",              // Allow login page
-                                        "/oauth/**" ).permitAll()
+                                        "/oauth/**","/api/v1/unsubscribe/**" ).permitAll()
 //                                JOB_SEEKERS
                                 .requestMatchers("/api/v1/jobs-seeker/**","/api/v1/jobs/{id}/apply","/api/v1/jobs/{id}/save","/api/v1/user/job-seeker/**").hasRole("JOB_SEEKER")
 //                                 EMPLOYER

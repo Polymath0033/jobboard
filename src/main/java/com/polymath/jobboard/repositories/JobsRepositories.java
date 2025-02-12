@@ -7,8 +7,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.web.bind.annotation.RequestParam;
 
+import java.time.LocalDateTime;
+
+import java.util.List;
 import java.util.Optional;
 
 public interface JobsRepositories extends JpaRepository<Jobs, Long>, JpaSpecificationExecutor<Jobs> {
@@ -34,5 +36,21 @@ lower(job.employers.companyName) like lower(concat('%', :search, '%') )
 //     rank DESC
 //""",nativeQuery = true)
 //    Page<Jobs> findSimilarJobs(@Param("query") String query, Pageable pageable);
+
+
+    @Query("""
+select job from Jobs job where job.expiresAt <= :now and job.status <> 'EXPIRED'
+""")
+    List<Jobs> findExpiredJobs(@Param("now") LocalDateTime now);
+
+    @Query("""
+select job from Jobs job where
+lower(job.title) like lower(concat('%', :search, '%')) or
+lower(job.description) like lower(concat('%', :search, '%')) or
+lower(job.category) like lower(concat('%', :search, '%')) or
+lower(job.location) like lower(concat('%', :search, '%')) or
+lower(job.employers.companyName) like lower(concat('%', :search, '%') )
+""")
+    List<Jobs> searchJobs(@Param("search") String search);
 
 }

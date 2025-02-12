@@ -1,6 +1,7 @@
 package com.polymath.jobboard.controllers;
 
 import com.polymath.jobboard.dto.response.JobsResponse;
+import com.polymath.jobboard.services.JobAlertsService;
 import com.polymath.jobboard.services.JobsService;
 import com.polymath.jobboard.services.JwtService;
 import com.polymath.jobboard.utils.responseHandler.ResponseHandler;
@@ -16,10 +17,9 @@ import java.time.LocalDateTime;
 @RequestMapping("/api/v1/jobs")
 public class PublicController {
     private final JobsService jobsService;
-    private final JwtService jwtService;
-    public PublicController(JobsService jobsService, JwtService jwtService) {
+
+    public PublicController(JobsService jobsService) {
         this.jobsService = jobsService;
-        this.jwtService = jwtService;
     }
 
     @GetMapping("")
@@ -52,5 +52,7 @@ public class PublicController {
         Page<JobsResponse> responses = jobsService.filterJobs(title, description, companyName, location, category, minSalary, maxSalary, startsAt, endsAt,pageable);
         return ResponseHandler.handleResponse(responses,HttpStatus.OK,"");
     }
+
+
 
 }

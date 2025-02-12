@@ -3,9 +3,9 @@ package com.polymath.jobboard.models;
 import com.polymath.jobboard.models.enums.JobStatus;
 import jakarta.persistence.*;
 import lombok.Data;
-import net.minidev.json.annotate.JsonIgnore;
+
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+
 
 import java.time.LocalDateTime;
 
@@ -35,4 +35,11 @@ public class Jobs {
 //    @Column(columnDefinition = "tsvector")
 //    @JsonIgnore
 //    private String searchableText;
+
+
+    public void updateJobStatus() {
+        if (this.expiresAt!=null&&LocalDateTime.now().isAfter(this.expiresAt)) {
+            this.status = JobStatus.EXPIRED;
+        }
+    }
 }

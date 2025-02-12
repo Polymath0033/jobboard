@@ -7,6 +7,7 @@ import com.polymath.jobboard.services.JwtService;
 import com.polymath.jobboard.services.SavedJobsService;
 import com.polymath.jobboard.utils.responseHandler.ResponseHandler;
 import org.springframework.http.HttpStatus;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -80,5 +81,14 @@ public class JobSeekerController {
         return ResponseHandler.handleResponse(null, HttpStatus.OK,"Successfully deleted");
     }
 
+//    @GetMapping("/unsubscribe/{id}/{email}")
+//    public ResponseEntity<?> unsubscribeFromJobAlerts(@PathVariable("id") Long id, @PathVariable("email") String email) {
+//        jobAlertsService.deleteJobAlerts(id,email);
+//        return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body("<html><body><h1>You've successfully unsubscribe from Job board Job Alerts</h1></body></html>");
+//
+//    }
+//    private String generateUnsubscribeLink(Long jobId) {
+//        return "";
+//    }
 
 }

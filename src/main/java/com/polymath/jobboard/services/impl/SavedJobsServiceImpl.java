@@ -8,7 +8,8 @@ import com.polymath.jobboard.models.JobSeekers;
 import com.polymath.jobboard.models.Jobs;
 import com.polymath.jobboard.models.SavedJobs;
 import com.polymath.jobboard.repositories.JobSeekersRepository;
-import com.polymath.jobboard.repositories.JobsRepository;
+
+import com.polymath.jobboard.repositories.JobsRepositories;
 import com.polymath.jobboard.repositories.SavedJobsRepository;
 import com.polymath.jobboard.services.SavedJobsService;
 import org.springframework.stereotype.Service;
@@ -20,10 +21,10 @@ import java.util.List;
 public class SavedJobsServiceImpl implements SavedJobsService {
 
     private final SavedJobsRepository savedJobsRepository;
-    private final JobsRepository jobsRepository;
+    private final JobsRepositories jobsRepository;
     private final JobSeekersRepository jobSeekersRepository;
 
-    public SavedJobsServiceImpl(SavedJobsRepository savedJobsRepository, JobsRepository jobsRepository, JobSeekersRepository jobSeekersRepository) {
+    public SavedJobsServiceImpl(SavedJobsRepository savedJobsRepository, JobsRepositories jobsRepository, JobSeekersRepository jobSeekersRepository) {
         this.savedJobsRepository = savedJobsRepository;
         this.jobsRepository = jobsRepository;
         this.jobSeekersRepository = jobSeekersRepository;

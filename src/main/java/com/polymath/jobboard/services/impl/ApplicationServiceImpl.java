@@ -3,7 +3,6 @@ package com.polymath.jobboard.services.impl;
 import com.polymath.jobboard.dto.requests.JobApplicationRequest;
 import com.polymath.jobboard.dto.response.JobsResponse;
 import com.polymath.jobboard.dto.response.applications.ApplicationResponse;
-import com.polymath.jobboard.dto.response.JobSeekersResponse;
 import com.polymath.jobboard.dto.response.applications.JobSeeker;
 import com.polymath.jobboard.dto.response.applications.JobSeekerApplication;
 import com.polymath.jobboard.dto.response.applications.JobsData;
@@ -17,8 +16,8 @@ import com.polymath.jobboard.models.enums.ApplicationStatus;
 import com.polymath.jobboard.models.enums.UserRole;
 import com.polymath.jobboard.repositories.ApplicationsRepository;
 import com.polymath.jobboard.repositories.JobSeekersRepository;
-import com.polymath.jobboard.repositories.JobsRepository;
-import com.polymath.jobboard.repositories.UsersRepositories;
+import com.polymath.jobboard.repositories.JobsRepositories;
+
 import com.polymath.jobboard.services.ApplicationService;
 import com.polymath.jobboard.services.CloudinaryUploadService;
 import com.polymath.jobboard.utils.RoleUtils;
@@ -31,12 +30,12 @@ import java.util.List;
 public class ApplicationServiceImpl implements ApplicationService {
 
     private final ApplicationsRepository applicationsRepository;
-    private final JobsRepository jobsRepository;
+    private final JobsRepositories jobsRepository;
     private final JobSeekersRepository jobSeekersRepository;
     private final RoleUtils roleUtils;
     private final CloudinaryUploadService cloudinaryUploadService;
 
-    public ApplicationServiceImpl(ApplicationsRepository applicationsRepository, JobsRepository jobsRepository, JobSeekersRepository jobSeekersRepository, RoleUtils roleUtils, UsersRepositories usersRepositories, CloudinaryUploadService cloudinaryUploadService) {
+    public ApplicationServiceImpl(ApplicationsRepository applicationsRepository, JobsRepositories jobsRepository, JobSeekersRepository jobSeekersRepository, RoleUtils roleUtils, CloudinaryUploadService cloudinaryUploadService) {
         this.applicationsRepository = applicationsRepository;
         this.jobsRepository = jobsRepository;
         this.jobSeekersRepository = jobSeekersRepository;
@@ -56,7 +55,7 @@ public class ApplicationServiceImpl implements ApplicationService {
             throw new CustomBadRequest("You can't apply for a job twice is already a job seeker");
         }
 
-        String resumeUrl = "";
+        String resumeUrl;
         if(request.resumeUrl()==null||request.resumeUrl().isEmpty()) {
             if(jobSeekers.getResumeUrl()!=null) {
                 resumeUrl = jobSeekers.getResumeUrl();
