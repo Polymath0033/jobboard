@@ -11,10 +11,9 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface JobsRepositories extends JpaRepository<Jobs, Long>, JpaSpecificationExecutor<Jobs> {
-    Optional<Jobs> findAndDeleteById(Long id);
+
     Page<Jobs> findAllByTitleContainingIgnoreCase(String title,Pageable pageable);
     @Query("""
 select job from Jobs job where
@@ -24,7 +23,7 @@ lower(job.category) like lower(concat('%', :search, '%')) or
 lower(job.location) like lower(concat('%', :search, '%')) or
 lower(job.employers.companyName) like lower(concat('%', :search, '%') )
 """)
-    public Page<Jobs> advanceJobsSearch(@Param("search") String search, Pageable pageable);
+     Page<Jobs> advanceJobsSearch(@Param("search") String search, Pageable pageable);
 
 
 //    Implementing this later
